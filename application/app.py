@@ -19,6 +19,7 @@ from langchain.chains import LLMChain, ConversationalRetrievalChain
 from langchain.chains.conversational_retrieval.prompts import CONDENSE_QUESTION_PROMPT
 from langchain.chains.question_answering import load_qa_chain
 from langchain.chat_models import ChatOpenAI, AzureChatOpenAI
+from langchain.llms import AzureOpenAI
 from langchain.embeddings import (
     OpenAIEmbeddings,
     HuggingFaceHubEmbeddings,
@@ -42,6 +43,8 @@ from worker import ingest_worker
 
 # os.environ["LANGCHAIN_HANDLER"] = "langchain"
 
+print(f"loaded settings: {settings.__dict__}")
+
 logger = logging.getLogger(__name__)
 if settings.LLM_NAME == "gpt4":
     gpt_model = 'gpt-4'
@@ -64,6 +67,7 @@ if platform.system() == "Windows":
 
 # loading the .env file
 dotenv.load_dotenv()
+print(os.environ)
 
 # load the prompts
 with open("prompts/combine_prompt.txt", "r") as f:
@@ -133,7 +137,15 @@ def get_docsearch(vectorstore, embeddings_key):
     if settings.EMBEDDINGS_NAME == "openai_text-embedding-ada-002":
         if is_azure_configured():
             os.environ["OPENAI_API_TYPE"] = "azure"
-            openai_embeddings = OpenAIEmbeddings(model=settings.AZURE_EMBEDDINGS_DEPLOYMENT_NAME)
+            # openai_embeddings = OpenAIEmbeddings(model=settings.AZURE_EMBEDDINGS_DEPLOYMENT_NAME)
+            openai_embeddings = OpenAIEmbeddings(
+                model=settings.AZURE_EMBEDDINGS_DEPLOYMENT_NAME,
+                deployment=settings.AZURE_EMBEDDINGS_DEPLOYMENT_NAME,
+                openai_api_key=os.environ["OPENAI_API_KEY"],
+                openai_api_base=os.environ["OPENAI_API_BASE"],
+                openai_api_type=os.environ["OPENAI_API_TYPE"],
+                openai_api_version=os.environ["OPENAI_API_VERSION"]
+            )
         else:
             openai_embeddings = OpenAIEmbeddings(openai_api_key=embeddings_key)
         docsearch = FAISS.load_local(vectorstore, openai_embeddings)
@@ -276,11 +288,22 @@ def api_answer():
         if settings.LLM_NAME == "openai_chat":
             if is_azure_configured():
                 logger.debug("in Azure")
-                llm = AzureChatOpenAI(
-                    openai_api_key=api_key,
-                    openai_api_base=settings.OPENAI_API_BASE,
-                    openai_api_version=settings.OPENAI_API_VERSION,
-                    deployment_name=settings.AZURE_DEPLOYMENT_NAME,
+                print("in Azure")
+                # llm = AzureChatOpenAI(
+                #     openai_api_key=api_key,
+                #     openai_api_base=settings.OPENAI_API_BASE,
+                #     openai_api_version=settings.OPENAI_API_VERSION,
+                #     deployment_name=settings.AZURE_DEPLOYMENT_NAME,
+                # )
+                llm = AzureOpenAI(
+                    deployment_name=os.environ["AZURE_DEPLOYMENT_NAME"],
+                    temperature=0,
+                    model_kwargs={
+                        "api_key": os.environ["OPENAI_API_KEY"],
+                        "api_base": os.environ["OPENAI_API_BASE"],
+                        "api_type": "azure",
+                    },
+                    openai_api_version=os.environ["OPENAI_API_VERSION"]
                 )
             else:
                 logger.debug("plain OpenAI")

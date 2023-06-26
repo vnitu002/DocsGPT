@@ -52,7 +52,15 @@ def call_openai_api(docs, folder_name):
         and os.environ.get("AZURE_EMBEDDINGS_DEPLOYMENT_NAME")
     ):
         os.environ["OPENAI_API_TYPE"] = "azure"
-        openai_embeddings = OpenAIEmbeddings(model=os.environ.get("AZURE_EMBEDDINGS_DEPLOYMENT_NAME"))
+        # openai_embeddings = OpenAIEmbeddings(model=os.environ.get("AZURE_EMBEDDINGS_DEPLOYMENT_NAME"))
+        openai_embeddings = OpenAIEmbeddings(
+            model=os.environ["AZURE_EMBEDDINGS_DEPLOYMENT_NAME"],
+            # deployment=os.environ["AZURE_EMBEDDINGS_DEPLOYMENT_NAME"],
+            # openai_api_key=os.environ["OPENAI_API_KEY"],
+            # openai_api_base=os.environ["OPENAI_API_BASE"],
+            # openai_api_type=os.environ["OPENAI_API_TYPE"],
+            # openai_api_version=os.environ["OPENAI_API_VERSION"]
+        )
     else:
         openai_embeddings = OpenAIEmbeddings()
     store = FAISS.from_documents(docs_test, openai_embeddings)

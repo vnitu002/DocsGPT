@@ -8,8 +8,8 @@ import nltk
 import typer
 
 from parser.file.bulk import SimpleDirectoryReader
-from parser.java2doc import extract_functions_and_classes as extract_java
-from parser.js2doc import extract_functions_and_classes as extract_js
+# from parser.java2doc import extract_functions_and_classes as extract_java
+# from parser.js2doc import extract_functions_and_classes as extract_js
 from parser.open_ai_func import call_openai_api, get_user_permission
 from parser.py2doc import extract_functions_and_classes as extract_py
 from parser.py2doc import transform_to_docs
@@ -112,10 +112,10 @@ def convert(dir: Optional[str] = typer.Option("inputs",
     """
     if formats == 'py':
         functions_dict, classes_dict = extract_py(dir)
-    elif formats == 'js':
-        functions_dict, classes_dict = extract_js(dir)
-    elif formats == 'java':
-        functions_dict, classes_dict = extract_java(dir)
+    # elif formats == 'js':
+    #     functions_dict, classes_dict = extract_js(dir)
+    # elif formats == 'java':
+    #     functions_dict, classes_dict = extract_java(dir)
     else:
         raise Exception("Sorry, language not supported yet")
     transform_to_docs(functions_dict, classes_dict, formats, dir)
