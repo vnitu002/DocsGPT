@@ -98,7 +98,7 @@ export function fetchAnswerSteaming(
       active_docs: docPath,
       history: JSON.stringify(history),
     };
-  
+
     fetch(apiHost + '/stream', {
       method: 'POST',
       headers: {
@@ -107,48 +107,51 @@ export function fetchAnswerSteaming(
       body: JSON.stringify(body),
     })
       .then((response) => {
-        if (!response.body) throw Error("No response body");
-  
+        if (!response.body) throw Error('No response body');
+
         const reader = response.body.getReader();
         const decoder = new TextDecoder('utf-8');
-        var counterrr = 0
-        const processStream = ({ done, value }: ReadableStreamReadResult<Uint8Array>) => {
+        let counterrr = 0;
+        const processStream = ({
+          done,
+          value,
+        }: ReadableStreamReadResult<Uint8Array>) => {
           if (done) {
             console.log(counterrr);
             return;
           }
 
           counterrr += 1;
-          
+
           const chunk = decoder.decode(value);
 
-          const lines = chunk.split("\n");
+          const lines = chunk.split('\n');
 
           for (let line of lines) {
-            if (line.trim() == "") {
+            if (line.trim() == '') {
               continue;
             }
             if (line.startsWith('data:')) {
               line = line.substring(5);
             }
-            
-            const messageEvent: MessageEvent = new MessageEvent("message", {
+
+            const messageEvent: MessageEvent = new MessageEvent('message', {
               data: line,
             });
 
             onEvent(messageEvent); // handle each message
           }
-  
+
           reader.read().then(processStream).catch(reject);
-        }
-  
+        };
+
         reader.read().then(processStream).catch(reject);
       })
       .catch((error) => {
         console.error('Connection failed:', error);
         reject(error);
       });
-  });  
+  });
 }
 
 export function sendFeedback(
