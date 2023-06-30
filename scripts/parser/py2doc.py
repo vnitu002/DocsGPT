@@ -3,7 +3,7 @@ import os
 from pathlib import Path
 
 import tiktoken
-from langchain.llms import OpenAI
+from langchain.llms import AzureOpenAI
 from langchain.prompts import PromptTemplate
 
 
@@ -72,7 +72,16 @@ def parse_functions(functions_dict, formats, dir):
                 input_variables=["code"],
                 template="Code: \n{code}, \nDocumentation: ",
             )
-            llm = OpenAI(temperature=0)
+            llm = AzureOpenAI(
+                    deployment_name=os.environ["AZURE_DEPLOYMENT_NAME"],
+                    temperature=0,
+                    model_kwargs={
+                        "api_key": os.environ["OPENAI_API_KEY"],
+                        "api_base": os.environ["OPENAI_API_BASE"],
+                        "api_type": "azure",
+                    },
+                    openai_api_version=os.environ["OPENAI_API_VERSION"]
+                )
             response = llm(prompt.format(code=function))
             mode = "a" if Path(f"outputs/{source_w}").exists() else "w"
             with open(f"outputs/{source_w}", mode) as f:
@@ -93,7 +102,16 @@ def parse_classes(classes_dict, formats, dir):
                 input_variables=["class_name", "functions_names"],
                 template="Class name: {class_name} \nFunctions: {functions_names}, \nDocumentation: ",
             )
-            llm = OpenAI(temperature=0)
+            llm = AzureOpenAI(
+                    deployment_name=os.environ["AZURE_DEPLOYMENT_NAME"],
+                    temperature=0,
+                    model_kwargs={
+                        "api_key": os.environ["OPENAI_API_KEY"],
+                        "api_base": os.environ["OPENAI_API_BASE"],
+                        "api_type": "azure",
+                    },
+                    openai_api_version=os.environ["OPENAI_API_VERSION"]
+                )
             response = llm(prompt.format(class_name=name, functions_names=function_names))
 
             with open(f"outputs/{source_w}", "a" if Path(f"outputs/{source_w}").exists() else "w") as f:
