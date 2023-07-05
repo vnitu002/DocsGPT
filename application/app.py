@@ -378,14 +378,23 @@ def api_answer():
         except Exception:
             pass
 
-        sources = docsearch.similarity_search(question, k=2)
+        question_sources_with_scores = docsearch.similarity_search_with_score(question, k=3)
         sources_doc = []
-        for doc in sources:
+        for doc, score in question_sources_with_scores:
             if doc.metadata:
-                sources_doc.append({'title': doc.metadata['title'], 'text': doc.page_content})
+                sources_doc.append({'title': doc.metadata['title'], 'text': doc.page_content, 'score': str(score)})
             else:
-                sources_doc.append({'title': doc.page_content, 'text': doc.page_content})
-        result['sources'] = sources_doc
+                sources_doc.append({'title': doc.page_content, 'text': doc.page_content, 'score': str(score)})
+        result['question_sources'] = sources_doc
+
+        answer_sources_with_score = docsearch.similarity_search_with_score(result["answer"], k=3)
+        sources_doc = []
+        for doc, score in answer_sources_with_score:
+            if doc.metadata:
+                sources_doc.append({'title': doc.metadata['title'], 'text': doc.page_content, 'score': str(score)})
+            else:
+                sources_doc.append({'title': doc.page_content, 'text': doc.page_content, 'score': str(score)})
+        result['answer_sources'] = sources_doc
 
         # mock result
         # result = {
